@@ -1,20 +1,17 @@
 ###########################################################################################
 # Name: Megan Griffin
 # Date: 3/24/2017
-# Description: Room Adventure... Revolutions 
+# Description: GUI for CyberStorm Puzzle 
 ###########################################################################################
 from Tkinter import *
-
-
+import time
+from time import sleep
 
 # the question class
-
 class Question(object):
         # the constructor
         def __init__(self, name, image):
-                # questions have a name, an image (the name of a file), an answer (e.g., south)
-                # (e.g., to the south is room n), items (e.g., table), item descriptions (for each item),
-                # and grabbables (things that can be taken into inventory)
+                # questions have a name, an image, and an answer to the question asked
                 self.name = name
                 self.image = image
                 self.answer ={}
@@ -47,33 +44,18 @@ class Question(object):
 
         
 
-        # adds an exit to the room
-        # the exit is a string (e.g., north)
-        # the room is an instance of a room
+        # adds an answer to each question
         def addAnswer(self, answer, question):
-                # append the exit and room to the appropriate dictionary
+                # append the answer and question to the appropriate dictionary
                 self._answer[answer] = question
-
-        # adds an item to the room
-        # the item is a string (e.g., table)
-        # the desc is a string that describes the item (e.g., it is made of wood)
-                # adds a grabbable item to the room
-        # the item is a string (e.g., key)
-                # removes a grabbable item from the room
-        # the item is a string (e.g., key)
         
 
-        # returns a string description of the room
+        # returns a string that will be displayed on the right of the screen
         def __str__(self):
-                # first, the room name
+                # the question number the user is on
                 s = "You are on {}.\n".format(self.name)
-
-                # next, the items in the room
+                # the question that is being asked
                 s += "What is the constellation? "
-
-
-        
-
                 return s
 
 # the game class
@@ -84,7 +66,7 @@ class Game(Frame):
                 # call the constructor in the superclass
                 Frame.__init__(self, parent)
 
-        # creates the rooms
+        # creates the questions
         def createQuestions(self):
             #r1 through r4 are the four rooms in the mansion
             #currentRoom is the room the player is currently in (which
@@ -100,59 +82,44 @@ class Game(Frame):
             global currentRoom
         
 
-            #create the rooms and give them meaningful names and an
+            #create the quesetions and give them meaningful names and an
             #image in the current dictionary
-            r1 = Question("Question 1", "sagittarius.gif")
-            r2 = Question("Question 2", "virgo.gif")
-            r3 = Question("Question 3", "ursa.gif")
-            r4 = Question("Question 4", "orion.gif")
-            r5 = Question("Winner", "roomroom.gif")
+            r1 = Question("Question 1", "generic.gif")
+            r2 = Question("Question 2", "generic.gif")
+            r3 = Question("Question 3", "generic.gif")
+            r4 = Question("Question 4", "generic.gif")
+            r5 = Question("Winner", "win.gif")
             
 
-            #adds exits to room 1
-            r1.addAnswer("sagittarius", r2) # to the east of room 1 is room 2
-            #add items to room 1
+            #when the answer is correct, the GUI goes to the next questionn
+            r1.addAnswer("sagittarius", r2)
             
-
-            #add exits to room 2
             r2.addAnswer("virgo", r3)
-
-            # add items to room 2
             
-            # add exits to room 3
             r3.addAnswer("ursa_major", r4)
-           
-            
 
-            # add exits to room 4
-            r4.addAnswer("orion", r5)
-            #add items to room 4
-            
+            # Once all of the constellations are correctly guessed, the Winner GUI appears
+            r4.addAnswer("orion", r5) 
 
-           
+            #starts the puzzle on question one
             Game.currentRoom = r1
 
-            
-            Game.inventory = []
-
- 
 
         # sets up the GUI
         def setupGUI(self):
             # organize the GUI
             self.pack(fill=BOTH, expand=1)
             # setup the player input at the bottom of the GUI
-
             # the widget is a Tkinter Entry
             # set its background to white and bind the return key to the
             # function process in the class
             # push it to the bottom of the GUI and let it fill
             # horizontally
             # give it focus so the player doesn't have to click on it
-            Game.player_input = Entry(self, bg="white")
-            Game.player_input.bind("<Return>", self.process)
-            Game.player_input.pack(side=BOTTOM, fill=X)
-            Game.player_input.focus()
+            ##Game.player_input = Entry(self, bg="white")
+            ##Game.player_input.bind("<Return>", self.process)
+            ##Game.player_input.pack(side=BOTTOM, fill=X)
+            ##Game.player_input.focus()
             # setup the image to the left of the GUI
             # the widget is a Tkinter Label
             # don't let the image control the widget's size
@@ -164,22 +131,23 @@ class Game(Frame):
             # setup the text to the right of the GUI
             # first, the frame in which the text will be placed
             text_frame = Frame(self, width=WIDTH / 2)
+            Game.player_input = Entry(self, bg="white")
+            Game.player_input.bind("<Return>", self.process)
+            Game.player_input.pack(side=BOTTOM, fill=X)
+            Game.player_input.focus()
             # the widget is a Tkinter Text
             # disable it by default
             # don't let the widget control the frame's size
-            Game.text = Text(text_frame, bg="lightgrey", state=DISABLED)
+            Game.text = Text(text_frame, bg="AliceBlue", state=DISABLED)
             Game.text.pack(fill=Y, expand=1)
             text_frame.pack(side=RIGHT, fill=Y)
             text_frame.pack_propagate(False)
 
-        # sets the current room image
+        # sets the current question image
         def setRoomImage(self):
         #if player makes it to the dining room then they win and a photo of the money is shown.
             if (Game.currentRoom == r5):
-                Game.img = PhotoImage(file="money2.gif")
-            elif (Game.currentRoom == None):
-                # if dead, set the skull image
-                Game.img = PhotoImage(file="skull.gif")
+                Game.img = PhotoImage(file="win.gif")
             else:
                 # otherwise grab the image for the current room
                 Game.img = PhotoImage(file=Game.currentRoom.image)
@@ -194,11 +162,7 @@ class Game(Frame):
             Game.text.delete("1.0", END)
             #player wins if they make it to this room
             if (Game.currentRoom == r5):
-                Game.text.insert(END, "Mission Complete! You know your constellations!")
-                
-            elif (Game.currentRoom == None):
-                # if dead, let the player know
-                Game.text.insert(END, "You are dead. The only thing you can do \nnow is quit.\n")
+                Game.text.insert(END, "Mission Complete!")
             else:
                 # otherwise, display the appropriate status
                 Game.text.insert(END, str(Game.currentRoom) +\
@@ -269,14 +233,8 @@ class Game(Frame):
                 #set the response (success)
                 response = "Correct."
 
+
                 
-
-                        
-                               
-
-        
-
-        
 
             # display the response on the right of the GUI
             # display the room's image on the left of the GUI
