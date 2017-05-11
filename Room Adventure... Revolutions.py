@@ -4,8 +4,10 @@
 # Description: GUI for CyberStorm Puzzle 
 ###########################################################################################
 from Tkinter import *
-import time
 from time import sleep
+import RPi.GPIO as GPIO
+import pygame;
+from random import randint
 
 # the question class
 class Question(object):
@@ -68,9 +70,7 @@ class Game(Frame):
 
         # creates the questions
         def createQuestions(self):
-            #r1 through r4 are the four rooms in the mansion
-            #currentRoom is the room the player is currently in (which
-            #can be one of r1 through r4)
+            #each r is a question
             global r1
             global r2
             global r3
@@ -80,6 +80,7 @@ class Game(Frame):
             global r7
 
             global currentRoom
+            global correct = 1
         
 
             #create the quesetions and give them meaningful names and an
@@ -89,20 +90,15 @@ class Game(Frame):
             r3 = Question("Question 3", "generic.gif")
             r4 = Question("Question 4", "generic.gif")
             r5 = Question("Winner", "win.gif")
-            
 
-            #when the answer is correct, the GUI goes to the next questionn
-            r1.addAnswer("sagittarius", r2)
-            
-            r2.addAnswer("virgo", r3)
-            
-            r3.addAnswer("ursa_major", r4)
+            r1.addAnswer(c1.name)
+            r2.addAnswer(c2.name)
+            r3.addAnswer(c3.name)
+            r4.addAnswer(c4.name)
 
-            # Once all of the constellations are correctly guessed, the Winner GUI appears
-            r4.addAnswer("orion", r5) 
+            currentRoom = r1
+ 
 
-            #starts the puzzle on question one
-            Game.currentRoom = r1
 
 
         # sets up the GUI
@@ -168,11 +164,25 @@ class Game(Frame):
                 Game.text.insert(END, str(Game.currentRoom) +\
                     ""  +\
                     "\n\n" + status)
+
+                if (correct == 1):
+                        c1.light()
+                else if (correct == 2):
+                        c2.light()
+                else if (correct == 3):
+                        c3.light()
+                else if (correct == 4):
+                        c4.light()
+
+                
+                
             Game.text.config(state=DISABLED)
+                
 
 
         # plays the game
         def play(self):
+                self.createConstellations()
                 # add the rooms to the game
                 self.createQuestions()
                 # configure the GUI
@@ -182,6 +192,14 @@ class Game(Frame):
                 # set the current status
                 self.setStatus("")
                 
+
+
+        def createConstellations(self):
+                c1 = Constellation("sagittarius")
+                c2 = Constallation("virgo")
+                c3 = Constallation("ursa")
+                c4 = Constallations("orion")
+                  
 
 
         # processes the player's input
@@ -230,6 +248,7 @@ class Game(Frame):
                 # specified exit
                 Game.currentRoom =\
                     Game.currentRoom.answer[noun]
+                correct++
                 #set the response (success)
                 response = "Correct."
 
@@ -242,6 +261,254 @@ class Game(Frame):
             self.setStatus(response)
             self.setRoomImage()
             Game.player_input.delete(0, END)
+
+class Constellation(object):
+    # use broadcom pin mode
+    GPIO.setmode(GPIO.BCM)
+
+    # create array of GPIO pins
+    pins = [26, 19, 13, 6, 5, 22, 27, 17]
+    # setup the output pins
+    GPIO.setup(pins, GPIO.OUT)
+
+    # initialize the constellation
+    def __init__(self, name):
+        self.name = name
+
+    # off function
+    def off(self):
+        GPIO.output(26, False)
+        GPIO.output(19, False)
+        GPIO.output(13, False)
+        GPIO.output(6, False)
+        GPIO.output(5, False)
+        GPIO.output(22, False)
+        GPIO.output(27, False)
+        GPIO.output(17, False)
+        sleep(.3)
+
+    # on function
+    def on(self):
+        GPIO.output(26, True)
+        GPIO.output(19, True)
+        GPIO.output(13, True)
+        GPIO.output(6, True)
+        GPIO.output(5, True)
+        GPIO.output(22, True)
+        GPIO.output(27, True)
+        GPIO.output(17, True)
+        
+    # depending on name light LEDs a certain way
+    def light(self, name):
+        self.off()
+        if (name == "sagittarius"):
+            # turn on 4, 5, 6, 8
+            GPIO.output(6, True)
+            GPIO.output(5, True)
+            GPIO.output(22, True)
+            GPIO.output(17, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3
+            GPIO.output(13, True)
+            sleep(3.5)
+            self.off()
+            # turn on 1, 2, 4, 7, 8
+            GPIO.output(26, True)
+            GPIO.output(19, True)
+            GPIO.output(6, True)
+            GPIO.output(27, True)
+            GPIO.output(17, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3, 5
+            GPIO.output(13, True)
+            GPIO.output(5, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4
+            GPIO.output(6, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3
+            GPIO.output(13, True)
+            sleep(3.5)
+            self.off()
+            # turn on 2, 4, 5
+            GPIO.output(19, True)
+            GPIO.output(6, True)
+            GPIO.output(5, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4, 6
+            GPIO.output(6, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # blink showing reset
+            for i in range(3):
+                self.on()
+                sleep(.2)
+                self.off()
+                sleep(.2)
+        if (name == "virgo"):
+            # turn on 5, 7
+            GPIO.output(5, True)
+            GPIO.output(27, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4, 6
+            GPIO.output(6, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on 7
+            GPIO.output(27, True)
+            sleep(3.5)
+            self.off()
+            # turn on 1, 4
+            GPIO.output(26, True)
+            GPIO.output(6, True)
+            sleep(3.5)
+            self.off()
+            # turn on 2, 5, 6
+            GPIO.output(19, True)
+            GPIO.output(5, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3
+            GPIO.output(13, True)
+            sleep(3.5)
+            self.off()
+            # turn on 2
+            GPIO.output(19, True)
+            sleep(3.5)
+            self.off()
+            # turn on 1
+            GPIO.output(26, True)
+            sleep(3.5)
+            self.off()
+            # blink showing reset
+            for i in range(3):
+                self.on()
+                sleep(.2)
+                self.off()
+                sleep(.2)
+        if (name == "ursa"):
+            # turn on 1
+            GPIO.output(26, True)
+            sleep(3.5)
+            self.off()
+            # turn on 1
+            GPIO.output(26, True)
+            sleep(3.5)
+            self.off()
+            # turn on 2, 5, 7
+            GPIO.output(19, True)
+            GPIO.output(5, True)
+            GPIO.output(27, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3, 4, 6
+            GPIO.output(13, True)
+            GPIO.output(6, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4, 7
+            GPIO.output(6, True)
+            GPIO.output(27, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3, 6
+            GPIO.output(13, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on none
+            sleep(3.5)
+            self.off()
+            # turn on 3, 4, 6
+            GPIO.output(13, True)
+            GPIO.output(6, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on 7
+            GPIO.output(27,True)
+            sleep(3.5)
+            self.off()
+            # turn on 3, 6
+            GPIO.output(13, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # blink showing reset
+            for i in range(3):
+                self.on()
+                sleep(.2)
+                self.off()
+                sleep(.2)
+        if (name == "orion"):
+            # turn on 1, 2
+            GPIO.output(26, True)
+            GPIO.output(19, True)
+            sleep(3.5)
+            self.off()
+            # turn on 1, 2
+            GPIO.output(26, True)
+            GPIO.output(19, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3
+            GPIO.output(13, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4
+            GPIO.output(6, True)
+            sleep(3.5)
+            self.off()
+            # turn on 6, 8
+            GPIO.output(22, True)
+            GPIO.output(17, True)
+            sleep(3.5)
+            self.off()
+            # turn 6
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn 3, 6
+            GPIO.output(13, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # turn on 4, 8
+            GPIO.output(6, True)
+            GPIO.output(17, True)
+            sleep(3.5)
+            self.off()
+            # turn on none
+            sleep(3.5)
+            self.off()
+            # turn on 2, 7
+            GPIO.output(19, True)
+            GPIO.output(27, True)
+            sleep(3.5)
+            self.off()
+            # turn on 3, 4, 5, 6
+            GPIO.output(13, True)
+            GPIO.output(6, True)
+            GPIO.output(5, True)
+            GPIO.output(22, True)
+            sleep(3.5)
+            self.off()
+            # blink showing reset
+            for i in range(3):
+                self.on()
+                sleep(.2)
+                self.off()
+                sleep(.2)
 
 
 ##########################################################
